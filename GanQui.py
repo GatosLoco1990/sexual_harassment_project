@@ -2,7 +2,13 @@ from pyparsing import col
 import sys
 import math
 import folium
+import pandas as pd
 from folium import plugins
+from tkinter import *
+from tkintermapview import TkinterMapView
+from selenium import webdriver
+import os
+import time
 
 
 class Vertice:
@@ -58,7 +64,6 @@ class Grafo:
     def hAcum(self, l):
         acum = 0
         for i in l:
-            print(acum)
             k = str(i)
             k = k.replace("[", "")
             k = k.replace("]", "")
@@ -135,6 +140,7 @@ class Grafo:
 
                 # 2.d
                 for v in self.vertices[actual].vecinos:
+                    # print(v)
                     # 2.d.I
                     if self.vertices[v[0]].visitado == False:
                         # 2.d.II
@@ -207,22 +213,42 @@ def print_list(list):
         print(f"Nombre:{nombre}, origen:{origen}, destino:{destino}, tamaño:{tamaño}, unadir:{unadir}, acoso: {acoso}, geometria:{geometria}")
 
 
+def interfaz(m):
+    raiz = Tk()
+    raiz.title("mapita lindo")
+    raiz.resizable(10, 10)
+    raiz.geometry("500x500")
+
+    # map_widget = TkinterMapView(raiz, width=600, height=400, corner_radius=0)
+    # map_widget.pack(fill="both", expand=True)
+
+    raiz.mainloop()
+
+
 def main():
     g = Grafo()
-
     ciudads = csv_to_dict("medellin.csv")
-    a = "6.2099443,-75.568715"
-    b = "6.2092431,-75.5690603"
-
+    # a = "6.2099443,-75.568715"  # Funciona
+    # b = "6.2092431,-75.5690603"
+    a = "6.2521142,-75.5716762"  # No Funciona
+    b = "6.2099661,-75.5687719"
+    am = [6.2099443, -75.568715]
+    bm = [6.2092431, -75.5690603]
     print(a)
     print(b)
 
     for i in range(0, len(ciudads)):
-        g.agregaVertice(ciudads[i].get("origen"), ciudads[i].get("acoso"))
-        if ciudads[i].get("oneway") == True:
+        if ciudads[i].get("acoso"):
+            g.agregaVertice(ciudads[i].get("origen"), ciudads[i].get("acoso"))
+        else:
+            g.agregaVertice(ciudads[i].get("origen"), 0)
+        if ciudads[i].get("unadir") == True:
+            # print(ciudads[i].get("unadir"))
             g.agregarArista(ciudads[i].get("origen"), ciudads[i].get(
                 "destino"), ciudads[i].get("tamaño"))
         else:
+            print(ciudads[i])
+            print(ciudads[i].get("unadir"))
             g.agregarArista(ciudads[i].get("origen"), ciudads[i].get(
                 "destino"), ciudads[i].get("tamaño"))
             g.agregarArista(ciudads[i].get("destino"), ciudads[i].get(
@@ -236,10 +262,25 @@ def main():
     print(" ")
     print(g.hAcum(g.camino(a, b)))
 
-    md_map = folium.Map(
-        location=[6.204122, -75.5836638], zoom_start=16, control_scale=True)
-    folium.Marker(location=[6.204122, -75.5836638],
-                  tooltip="Inicio").add_to(md_map)
+    md_map = folium.Map(location=am, zoom_start=16, control_scale=True)
+    folium.Marker(location=am, tooltip="Inicio").add_to(md_map)
+    folium.PolyLine(g.camino(a, b), tooltip="Rutita gomnita").add_to(md_map)
+
+    # mapFname = 'output.html'
+    # md_map.save(mapFname)
+    # mapUrl = 'file://{0}/{1}'.format(os.getcwd(), mapFname)
+
+    # download gecko driver for firefox from here - https://github.com/mozilla/geckodriver/releases
+
+    # use selenium to save the html as png image
+
+    # driver = webdriver.Chrome()
+    # driver.get(mapUrl)
+    # wait for 5 seconds for the maps and other assets to be loaded in the browser
+    # time.sleep(5)
+    # driver.save_screenshot('output.png')
+    # driver.quit()
+    # interfaz(md_map)
 
     # g.imprimirGrafica()
 
